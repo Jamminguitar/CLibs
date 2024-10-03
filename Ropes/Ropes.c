@@ -34,7 +34,7 @@ int checkWeights(RopeNode *current) {
  * beneath it together, as well as removing its child
  * nodes from the list.
  */
-char* combineData(RopeNode *current)
+char* combineBelowData(RopeNode *current)
 {
     if (isLeaf(current)) {
         return current->chars;
@@ -43,13 +43,17 @@ char* combineData(RopeNode *current)
     int currIndex = 0;
     // Ensuring both nodes are leaf nodes (if they exist)
     if (current->left && !isLeaf(current->left)) {
-        current->left->chars = combineData(current->left);
+        current->left->chars = combineBelowData(current->left);
     }
     if (current->right && !isLeaf(current->right)) {
-        current->right->chars = combineData(current->right);
+        current->right->chars = combineBelowData(current->right);
     }
     // TODO: Combine data into current node, and then
     // remove both of the other nodes from the list
+    // Check again that they're both leaf nodes
+    // Then check to make sure the size of both ends is <= 8
+    // if unable to combine, return an empty char array
+    
 }
 
 /*
