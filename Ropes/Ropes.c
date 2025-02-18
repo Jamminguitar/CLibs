@@ -2,6 +2,13 @@
 #include <stdlib.h>
 
 /*
+ * Creates two child nodes from a leaf node
+ */
+ int createChildNodes(RopeNode *current) {
+ 	return 0;
+ }
+
+/*
  * Checks whether the given node is a leaf
  */
 int isLeaf(RopeNode *current) {
@@ -45,29 +52,29 @@ int combineBelowData(RopeNode *current)
     if (isLeaf(current)) {
         return 0;
     }
-    // Make sure the left node is a leaf node, or return null if this is impossible
+    // Make sure the left node is a leaf node, or return failure if this is impossible
     if (current->left && !isLeaf(current->left) && !combineBelowData(current->left)) {
     	return 1;
     }
-    // Make sure the right node is a leaf node, or return null if this is impossible
+    // Make sure the right node is a leaf node, or return failure if this is impossible
     if (current->right && !isLeaf(current->right) && !combineBelowData(current->right)) {
     	return 1;
     }
-    // TODO: Combine data into current node, and then
-    // remove both of the other nodes from the list
-    // Check again that they're both leaf nodes
-    // Then check to make sure the size of both ends is <= 8
-    // if unable to combine, return an empty char array
+
+    // Return failure if the combined size is too large
     int combinedSize = current->left->size + current->right->size;
 	if (combinedSize > 8) {
 		return 1;
 	}
+	// Add the left node to the current node
 	for (int i = 0; i < current->left->size; i++) {
 		current->chars[i] = current->left->chars[i];
 	}
+	// Add the right node to the current node
 	for (int i = current->left->size; i < combinedSize; i++) {
 		current->chars[i] = current->right->chars[i - current->left->size];
 	}
+	// Delete the child nodes
 	free(current->left);
 	free(current->right);
 	current->left = NULL;
@@ -80,9 +87,40 @@ int combineBelowData(RopeNode *current)
  * TODO: Create method, try to fit in existing node if
  * possible, and otherwise split the node into child nodes.
  */
-int addData(uint64_t position, char data)
+int addData(RopeNode *current, uint64_t position, char data)
 {
-    return 0;
+	// Return failure if the node is null
+	if (!current) {
+		return 1;
+	}
+	int success;
+	// If not a leaf, recurse down the tree
+	if (!isLeaf(current)) {
+		// Recurse right
+		if (position > current->weight) {
+			success = addData(current->right, position - current->weight, data);
+		// Recurse left
+		} else {
+			success = addData(current->left, position, data);
+			if (success) {
+				current->weight += 1;
+			}
+		}
+	// This is a leaf node, try and fit inside node
+	} else {
+		if (current->size < 8) {
+			for (int i = 7; i > position; i--) {
+				current->chars[i] = current->chars[i-1];
+			}
+			current->chars[position] = data;
+			current->size += 1;
+			success = 0;
+		} else {
+			createChildNodes(current);
+			success = addData(current, position, data);
+		}
+	}
+    return success;
 }
 
 //TODO: Remove data method that must rebalance the tree if it removes a node
